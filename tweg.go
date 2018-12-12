@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"math"
@@ -27,41 +28,41 @@ func main() {
 	secret := strings.ToLower(*secret)
 	secretBinary := ""
 	secretAlphabetString := " abcdefghijklmnopqrstuvwxyz123456789'0.:/\\%-_?&;"
-	secretAlphabet := strings.Split(secretAlphabetString, "")
-	secretAlphabetBitLength := len(strconv.FormatInt(int64(len(secretAlphabet)), 2))
+	//secretAlphabet := strings.Split(secretAlphabetString, "")
+	//secretAlphabetBitLength := len(strconv.FormatInt(int64(len(secretAlphabet)), 2))
 	tweetCovertextChars := 0
 	result := ""
 
 	// Process the secret
-	for i := 0; i < len(secret); i++ {
+	/* for i := 0; i < len(secret); i++ {
 		character := string(secret[i])
 		secretAlphabetIndex := indexOf(character, secretAlphabet)
+
+		fmt.Println(secretAlphabetIndex)
 
 		if secretAlphabetIndex >= 0 {
 			secretCharacterBinary := zeropad(strconv.FormatInt(int64(secretAlphabetIndex), 2), secretAlphabetBitLength)
 			if len(secretCharacterBinary) != secretAlphabetBitLength {
-				fmt.Errorf("ERROR: binary representation of character too big")
+				fmt.Println("ERROR: binary representation of character too big")
 			}
 			secretBinary += secretCharacterBinary
 		} else {
-			fmt.Errorf("ERROR: secret contains invalid character '" + character + "' Ignored")
+			fmt.Println("ERROR: secret contains invalid character '" + character + "' Ignored")
 		}
-	}
+	} */
+
+	// Calculate the binary of the secret
+	secretBinary = stringToBin(secret)
 
 	fmt.Println("TWEET :", tweet)
 	fmt.Println("SECRET :", secret)
 	fmt.Println("SECRET BINARY :", secretBinary)
 	fmt.Println("SECRET ALPHABET STRING :", secretAlphabetString)
 
-	// Ensure
-	if len(secretBinary)%secretAlphabetBitLength > 0 {
-		secretBinary = zeropad("0", secretAlphabetBitLength-(len(secretBinary)%secretAlphabetBitLength))
-	}
-
 	// Process the tweet
 	for i := 0; i < len(tweet); i++ {
 		character := tweet[i]
-		var character2 []byte
+		var character2 string
 
 		homoglyph, exists := homoglyphs[string(character)]
 		if exists {
@@ -70,21 +71,30 @@ func main() {
 			tweetCovertextChars += homoglyphOptionsBitLength
 
 			if len(secretBinary) > 0 {
-				fmt.Println(len(secretBinary), homoglyphOptionsBitLength)
+				//fmt.Println(len(secretBinary), homoglyphOptionsBitLength)
 				secretBinaryToEncode := secretBinary[0:homoglyphOptionsBitLength]
 				secretBinary = secretBinary[:homoglyphOptionsBitLength]
-				secretBinaryToEncodeInDecimal, _ := strconv.ParseInt(secretBinaryToEncode, 2, 64)
+				fmt.Println(secretBinaryToEncode)
+				secretBinaryToEncodeInDecimal, err := strconv.ParseInt(secretBinaryToEncode, 2, 64)
+				if err != nil {
+					fmt.Println("Error while parsing the secretBinaryToEncodeInDecimal")
+				}
 
 				if secretBinaryToEncodeInDecimal > 0 {
 					characterCodeInHexadecimal := homoglyphOptions[secretBinaryToEncodeInDecimal-1]
-					characterCodeInDecimal, _ := strconv.ParseInt(characterCodeInHexadecimal, 16, 64)
+					fmt.Println(characterCodeInHexadecimal)
+					characterCodeInDecimal, err := strconv.ParseInt(characterCodeInHexadecimal, 16, 64)
+					if err != nil {
+						fmt.Println("Error while parsing the characterCodeInDecimal")
+					}
 					//character = String.fromCharCode(character_code_in_decimal)
-					character2 = []byte(strconv.Itoa(int(characterCodeInDecimal)))
+					character2 = string(characterCodeInDecimal)
+					fmt.Println("characterCodeInDecimal :", characterCodeInDecimal)
 				}
 			}
 		}
-		result += string(character2)
-		fmt.Println("PARTIAL RESULT :", result)
+		result += character2
+		fmt.Println("PARTIAL RESULT :", result, character2)
 	}
 
 	fmt.Println("RESULT :", result)
@@ -129,6 +139,21 @@ func strPad(input string, padLength int, padString string, padType string) strin
 	}
 
 	return output
+}
+
+func toBinaryBytes(s string) string {
+	var buffer bytes.Buffer
+	for i := 0; i < len(s); i++ {
+		fmt.Fprintf(&buffer, "%b", s[i])
+	}
+	return fmt.Sprintf("%s", buffer.Bytes())
+}
+
+func stringToBin(s string) (binString string) {
+	for _, c := range s {
+		binString = fmt.Sprintf("%s%.8b", binString, c)
+	}
+	return
 }
 
 var homoglyphs = map[string][]string{
