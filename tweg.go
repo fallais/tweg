@@ -8,11 +8,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	tweet  = flag.String("tweet", "A koala arrives in the great forest of Wumpalumpa", "Tweet ?")
-	secret = flag.String("secret", "alpaga", "Secret ?")
+	tweet   = flag.String("tweet", "A koala arrives in the great forest of Wumpalumpa", "Tweet ?")
+	secret  = flag.String("secret", "alpaga", "Secret ?")
+	logging = flag.String("logging", "info", "Logging level")
 )
 
 func init() {
@@ -21,43 +24,71 @@ func init() {
 
 	// Set localtime to UTC
 	time.Local = time.UTC
+
+	// Set the logging level
+	level, err := logrus.ParseLevel(*logging)
+	if err != nil {
+		logrus.Fatalln("Invalid log level ! (panic, fatal, error, warn, info, debug)")
+	}
+	logrus.SetLevel(level)
+
+	// Set the TextFormatter
+	logrus.SetFormatter(&logrus.TextFormatter{
+		DisableColors: true,
+	})
 }
 
 func main() {
 	tweet := *tweet
-	secret := strings.ToLower(*secret)
+	secret := strings.ToLower(*secret) + " "
 	secretBinary := ""
 	secretAlphabetString := " abcdefghijklmnopqrstuvwxyz123456789'0.:/\\%-_?&;"
-	//secretAlphabet := strings.Split(secretAlphabetString, "")
-	//secretAlphabetBitLength := len(strconv.FormatInt(int64(len(secretAlphabet)), 2))
+	secretAlphabet := strings.Split(secretAlphabetString, "")
+	secretAlphabetBitLength := len(strconv.FormatInt(int64(len(secretAlphabet)), 2))
 	tweetCovertextChars := 0
 	result := ""
 
+	fmt.Println("SECRET ALPHABET BIT LENGTH :", secretAlphabetBitLength)
+	fmt.Println("SECRET LENGTH :", len(secret))
+
 	// Process the secret
-	/* for i := 0; i < len(secret); i++ {
+	for i := 0; i < len(secret); i++ {
 		character := string(secret[i])
 		secretAlphabetIndex := indexOf(character, secretAlphabet)
 
-		fmt.Println(secretAlphabetIndex)
-
 		if secretAlphabetIndex >= 0 {
-			secretCharacterBinary := zeropad(strconv.FormatInt(int64(secretAlphabetIndex), 2), secretAlphabetBitLength)
+			secretCharacterBinary := zeropadding(strconv.FormatInt(int64(secretAlphabetIndex), 2), secretAlphabetBitLength)
 			if len(secretCharacterBinary) != secretAlphabetBitLength {
 				fmt.Println("ERROR: binary representation of character too big")
 			}
 			secretBinary += secretCharacterBinary
+			logrus.WithFields(logrus.Fields{
+				"secretCharacterBinary": secretCharacterBinary,
+			}).Infoln("SECRET BINARY :", secretBinary)
 		} else {
 			fmt.Println("ERROR: secret contains invalid character '" + character + "' Ignored")
 		}
-	} */
+	}
 
-	// Calculate the binary of the secret
-	secretBinary = stringToBin(secret)
-
+	// Print some useful values
 	fmt.Println("TWEET :", tweet)
 	fmt.Println("SECRET :", secret)
 	fmt.Println("SECRET BINARY :", secretBinary)
+	fmt.Println("SECRET BINARY LENGTH :", len(secretBinary))
 	fmt.Println("SECRET ALPHABET STRING :", secretAlphabetString)
+
+	// Ensure
+	atoi64, err := strconv.ParseInt(secretBinary, 2, 64)
+	if err != nil {
+		fmt.Println("Error while converting :", err)
+	}
+	if int(atoi64)%secretAlphabetBitLength > 0 {
+		for i := 0; i < secretAlphabetBitLength-int(atoi64)%secretAlphabetBitLength; i++ {
+			secretBinary += "0"
+		}
+	}
+
+	fmt.Println("SECRET BINARY AFTER ENSURE :", secretBinary, "oui")
 
 	// Process the tweet
 	for i := 0; i < len(tweet); i++ {
@@ -71,10 +102,9 @@ func main() {
 			tweetCovertextChars += homoglyphOptionsBitLength
 
 			if len(secretBinary) > 0 {
-				//fmt.Println(len(secretBinary), homoglyphOptionsBitLength)
+				fmt.Println("homoglyphOptionsBitLength", homoglyphOptionsBitLength)
 				secretBinaryToEncode := secretBinary[0:homoglyphOptionsBitLength]
-				secretBinary = secretBinary[:homoglyphOptionsBitLength]
-				fmt.Println(secretBinaryToEncode)
+				secretBinary = secretBinary[homoglyphOptionsBitLength:]
 				secretBinaryToEncodeInDecimal, err := strconv.ParseInt(secretBinaryToEncode, 2, 64)
 				if err != nil {
 					fmt.Println("Error while parsing the secretBinaryToEncodeInDecimal")
@@ -107,6 +137,22 @@ func indexOf(element string, data []string) int {
 		}
 	}
 	return -1 //not found.
+}
+
+func zeropadding(value string, length int) string {
+	myString := ""
+	valueLength := len(value)
+
+	if valueLength >= length {
+		return value
+	}
+
+	for i := 0; i < length-valueLength; i++ {
+		myString += "0"
+	}
+	myString += value
+
+	return myString
 }
 
 func zeropad(value string, length int) string {
