@@ -1,6 +1,6 @@
 # TWEG
 
-A **Twitter Steganography** based on the great work of [Steg Of The Dump](https://github.com/holloway/steg-of-the-dump)
+A **Twitter Steganography** built with **Golang** and based on the great work of [Steg Of The Dump](https://github.com/holloway/steg-of-the-dump)
 
 ## How it works
 
@@ -18,7 +18,7 @@ Third letter is `p`, its position in the alphabet is `16`. So its binary reprsen
 Forth letter is `a`, its position in the alphabet is `1`. So its binary reprsentation is `000001`.  
 Fifth letter is `g`, its position in the alphabet is `7`. So its binary reprsentation is `000111`.  
 Sixth letter is `a`, its position in the alphabet is `1`. So its binary reprsentation is `000001`.  
-A space is added, its position in the alphabet is `0`. So its binary reprsentation is `000000`.  
+A space is added (I do not know why..), its position in the alphabet is `0`. So its binary reprsentation is `000000`.  
 Binary of hidden message is `000001001100010000000001000111000001000000`.
 
 Then, it needs to ensure that the binary is divisible by the alphabet bitlength, which is `6`. To do so, it adds as many `0` as needed at the end.
@@ -43,4 +43,6 @@ So, we can get the next `4 bit` of the binary representation of the hidden messa
 
 Final tweet is now `A `. The first 4 bit of the binary representation of the hidden message are removed.
 
-#### Again and again
+#### Again and again..
+
+Repeat the step.
