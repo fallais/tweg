@@ -10,11 +10,10 @@ Given this :
 - Hidden message : `alpaga`
 - Alphabet : ` abcdefghijklmnopqrstuvwxyz123456789'0.:/\\%-_?&`
 
-### Step 1 : binary of the hidden message
+### Step 1 : generate binary representation of the hidden message
 
-First letter is `a`, its position in the alphabet is `1`. So its binary reprsentation is `000001`.
-
-Second letter is `l`, its position in the alphabet is `12`. So its binary reprsentation is `001100`.
+First letter is `a`, its position in the alphabet is `1`. So its binary reprsentation is `000001`.  
+Second letter is `l`, its position in the alphabet is `12`. So its binary reprsentation is `001100`.  
 
 Third letter is `p`, its position in the alphabet is `16`. So its binary reprsentation is `010000`.
 
