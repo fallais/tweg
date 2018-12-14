@@ -1,61 +1,12 @@
-package main
+package tweg
 
 import (
-	"flag"
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/sirupsen/logrus"
 )
-
-var (
-	tweet   = flag.String("tweet", "A koala arrives in the great forest of Wumpalumpa", "Tweet ?")
-	secret  = flag.String("secret", "alpaga", "Secret ?")
-	action  = flag.String("action", "encode", "Action ?")
-	logging = flag.String("logging", "info", "Logging level")
-)
-
-func init() {
-	// Parse the flags
-	flag.Parse()
-
-	// Set localtime to UTC
-	time.Local = time.UTC
-
-	// Set the logging level
-	level, err := logrus.ParseLevel(*logging)
-	if err != nil {
-		logrus.Fatalln("Invalid log level ! (panic, fatal, error, warn, info, debug)")
-	}
-	logrus.SetLevel(level)
-
-	// Set the TextFormatter
-	logrus.SetFormatter(&logrus.TextFormatter{
-		DisableColors: true,
-	})
-}
-
-func main() {
-	t := NewTweg()
-
-	// Lookup
-	lookup()
-	//fmt.Println(homoglyphsLookup)
-
-	switch *action {
-	case "encode":
-		fmt.Println(t.Encode(*tweet, *secret))
-		break
-	case "decode":
-		fmt.Println(t.Decode("A kｏａla arrivｅs іn the great forest of Wumpalumpa"))
-		break
-	default:
-		logrus.Fatalln("Action is incorrect")
-	}
-
-}
 
 //------------------------------------------------------------------------------
 // Structure
@@ -66,6 +17,7 @@ type Tweg struct {
 	secretAlphabetString    string
 	secretAlphabet          []string
 	secretAlphabetBitLength int
+	homoglyphsLookup        map[string]string
 }
 
 //------------------------------------------------------------------------------
@@ -82,6 +34,7 @@ func NewTweg() *Tweg {
 		secretAlphabetString:    secretAlphabetString,
 		secretAlphabet:          secretAlphabet,
 		secretAlphabetBitLength: secretAlphabetBitLength,
+		homoglyphsLookup:        make(map[string]string),
 	}
 }
 
@@ -178,42 +131,22 @@ func (t *Tweg) Decode(tweet string) string {
 
 	// Process the tweet
 	for _, character := range tweet {
-		homoglyphLookup, exists := homoglyphsLookup[string(character)]
+		homoglyphLookup, exists := t.homoglyphsLookup[string(character)]
 		if exists {
 			secretBinary += homoglyphLookup
-			//fmt.Println(character, string(character), homoglyphLookup)
-		} else {
-			//fmt.Println("not found")
-		}
-
-		fmt.Println(fmt.Sprintf("character %q becomes %s in binary", character, findInLookup(string(character))))
-	}
-
-	//fmt.Println(secretBinary)
-
-	return ""
-}
-
-//------------------------------------------------------------------------------
-// Helpers
-//------------------------------------------------------------------------------
-
-func findInLookup(c string) string {
-	for ix, v := range homoglyphsLookup {
-		if string(ix) == c {
-			return v
 		}
 	}
 
 	return ""
 }
 
-func lookup() {
+// Lookup the homoglyphs
+func (t *Tweg) Lookup() {
 	for c, h := range homoglyphs {
 		homoglyphOptionsBitLength := len(strconv.FormatInt(int64(len(h)+1), 2)) - 1
-		homoglyphsLookup[c] = ""
+		t.homoglyphsLookup[c] = ""
 		for i := 0; i < homoglyphOptionsBitLength; i++ {
-			homoglyphsLookup[c] += "0"
+			t.homoglyphsLookup[c] += "0"
 		}
 
 		// Options
@@ -224,11 +157,15 @@ func lookup() {
 				fmt.Println("Error while parsing the characterCodeInDecimal")
 			}
 			homoglyphOptionCharacter := string(characterCodeInDecimal)
-			homoglyphsLookup[homoglyphOptionCharacter] = zeropadding(strconv.FormatInt(int64(i+1), 2), homoglyphOptionsBitLength)
+			t.homoglyphsLookup[homoglyphOptionCharacter] = zeropadding(strconv.FormatInt(int64(i+1), 2), homoglyphOptionsBitLength)
 			i++
 		}
 	}
 }
+
+//------------------------------------------------------------------------------
+// Helpers
+//------------------------------------------------------------------------------
 
 func indexOf(element string, data []string) int {
 	for k, v := range data {
@@ -259,8 +196,6 @@ func zeropadding(value string, length int) string {
 //------------------------------------------------------------------------------
 // Const
 //------------------------------------------------------------------------------
-
-var homoglyphsLookup = map[string]string{}
 
 var homoglyphs = map[string][]string{
 	"!":  []string{"FF01"},
