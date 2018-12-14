@@ -33,7 +33,7 @@ First character of the tweet is `A`, it has `3` homoglyphs, that means `4` possi
 
 So, we can get the first `2 bit` of the binary representation of the hidden message. Which are `00`. This is `0` in decimal. That means that this character is left intact.
 
-Final tweet starts with `A`. The 2 bit of the binary representation of the hidden message are removed.
+Final tweet starts with `A`. The first 2 bit of the binary representation of the hidden message are removed.
 
 #### Second character
 
@@ -41,6 +41,6 @@ Second character of the tweet is ` ` (space), it has `15` homoglyphs, that means
 
 So, we can get the next `4 bit` of the binary representation of the hidden message. Which are `0001`. This is `1` in decimal. It is subtracting `1` and searching the hexadecimal code of the homoglyph at this position, the hexadecimal code of the homoglyph of ` ` at position `2` is `2000`. So the character is `U+2000`, which is a homoplygh of a space.
 
-Final tweet is now `A `
+Final tweet is now `A `. The first 4 bit of the binary representation of the hidden message are removed.
 
 #### Again and again
