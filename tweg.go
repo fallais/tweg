@@ -101,10 +101,12 @@ func (t *Tweg) Encode(tweet, secret string) string {
 		character := string(secret[i])
 		secretAlphabetIndex := indexOf(character, t.secretAlphabet)
 
+		fmt.Println(secretAlphabetIndex)
+
 		if secretAlphabetIndex >= 0 {
 			secretCharacterBinary := zeropadding(strconv.FormatInt(int64(secretAlphabetIndex), 2), t.secretAlphabetBitLength)
 			if len(secretCharacterBinary) != t.secretAlphabetBitLength {
-				fmt.Println("ERROR: binary representation of character too big")
+				logrus.Errorln("The binary representation of character is too big")
 			}
 			secretBinary += secretCharacterBinary
 			logrus.WithFields(logrus.Fields{
