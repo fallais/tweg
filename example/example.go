@@ -42,14 +42,13 @@ func main() {
 
 	// Lookup
 	t.Lookup()
-	//fmt.Println(homoglyphsLookup)
 
 	switch *action {
 	case "encode":
-		fmt.Println(t.Encode(*tweet, *secret))
+		fmt.Println("Result is :", t.Encode(*tweet, *secret))
 		break
 	case "decode":
-		fmt.Println(t.Decode("A kｏａla arrivｅs іn the great forest of Wumpalumpa"))
+		fmt.Println("Result is :", t.Decode("A kｏａla arrivｅs іn the great forest of Wumpalumpa"))
 		break
 	default:
 		logrus.Fatalln("Action is incorrect")

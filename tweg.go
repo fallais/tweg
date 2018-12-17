@@ -2,6 +2,7 @@ package tweg
 
 import (
 	"fmt"
+	//"math/big"
 	"strconv"
 	"strings"
 
@@ -83,7 +84,7 @@ func (t *Tweg) Encode(tweet, secret string) string {
 		logrus.Errorln("Error while converting :", err)
 	}
 	if int(atoi64)%t.secretAlphabetBitLength > 0 {
-		for i := 0; i < t.secretAlphabetBitLength-int(atoi64)%t.secretAlphabetBitLength; i++ {
+		for i := 0; i < t.secretAlphabetBitLength-(int(atoi64)%t.secretAlphabetBitLength); i++ {
 			secretBinary += "0"
 		}
 	}
@@ -128,6 +129,7 @@ func (t *Tweg) Encode(tweet, secret string) string {
 // Decode the tweet
 func (t *Tweg) Decode(tweet string) string {
 	secretBinary := ""
+	result := ""
 
 	// Process the tweet
 	for _, character := range tweet {
@@ -137,7 +139,34 @@ func (t *Tweg) Decode(tweet string) string {
 		}
 	}
 
-	return ""
+	// Ensure
+	nb := t.secretAlphabetBitLength - (len(secretBinary) % t.secretAlphabetBitLength)
+	if len(secretBinary)%t.secretAlphabetBitLength > 0 {
+		for i := 0; i < nb; i++ {
+			secretBinary += "0"
+		}
+	}
+
+	for len(secretBinary) > 0 {
+		secretCharacteInBinary := secretBinary[0:t.secretAlphabetBitLength]
+		if len(secretCharacteInBinary) > 0 {
+			secretCharacteInBinary = zeropadding(secretCharacteInBinary, t.secretAlphabetBitLength)
+			if len(secretCharacteInBinary) != t.secretAlphabetBitLength {
+				logrus.Errorln("ERROR: Unable to extract 5 characters (zeropadded) from string. ")
+			}
+			secretCharacterInDecimal, err := strconv.ParseInt(secretCharacteInBinary, 2, 64)
+			if err != nil {
+				fmt.Println("Error while parsing the secretCharacteInBinary")
+			}
+			if secretCharacterInDecimal < int64(len(t.secretAlphabet)) {
+				result += t.secretAlphabet[secretCharacterInDecimal]
+			}
+		}
+
+		secretBinary = secretBinary[t.secretAlphabetBitLength:]
+	}
+
+	return result
 }
 
 // Lookup the homoglyphs

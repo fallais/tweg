@@ -39,7 +39,7 @@ Final tweet starts with `A`. The first 2 bit of the binary representation of the
 
 ##### Second character
 
-Second character of the tweet is ` ` (space), it has `15` homoglyphs, that means `16` possibilities. The binary of `16` is `10000`, which has a length of `5`. It is substracting 1 soto st we get `4`. That means we can use `4 bit` to represent the `16 possibilities` of the character ` `.
+Second character of the tweet is ` ` (space), it has `15` homoglyphs, that means `16` possibilities. The binary of `16` is `10000`, which has a length of `5`. It is substracting 1 so we get `4`. That means we can use `4 bit` to represent the `16 possibilities` of the character ` `.
 
 So, we can get the next `4 bit` of the binary representation of the hidden message. Which are `0001`. This is `1` in decimal. It is subtracting `1` and searching the hexadecimal code of the homoglyph at this position, the hexadecimal code of the homoglyph of ` ` at position `2` is `2000`. So the character is `U+2000`, which is a homoplygh of a space.
 
@@ -51,6 +51,8 @@ Repeat the step.
 
 ### Decoding
 
+Encoded message : `A kｏａla arrivｅs іn the great forest of Wumpalumpa`
+
 In order to decode the message, a lookup dictionnary is built, like this :
 
 ```json
@@ -61,8 +63,6 @@ In order to decode the message, a lookup dictionnary is built, like this :
   "b": ""
 }
 ```
-
-Encoded message : `A kｏａla arrivｅs іn the great forest of Wumpalumpa`
 
 #### Step 1 : generate binary representation
 
