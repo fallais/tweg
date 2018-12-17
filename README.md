@@ -48,9 +48,10 @@ So, we can get the next `4 bit` of the binary representation of the hidden messa
 
 Final tweet is now `A `. The first 4 bit of the binary representation of the hidden message are removed.
 
-##### Again and again..
+##### Again and again
 
-Repeat the step.
+Repeat the step.  
+The final result is `A kｏａla arrivｅs іn the great forest of Wumpalumpa`.
 
 ### Decoding
 
