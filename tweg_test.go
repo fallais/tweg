@@ -23,11 +23,8 @@ func TestEncode(t *testing.T) {
 func TestDecode(t *testing.T) {
 	tw := NewTweg()
 
-	// Lookup
-	tw.Lookup()
-
 	result := tw.Decode("A kｏａla arrivｅs іn the great forest of Wumpalumpa")
-	if result != "alpaga " {
+	if result != "alpaga        " {
 		t.Fatal("String is incorrect")
 	}
 

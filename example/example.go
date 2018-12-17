@@ -40,9 +40,6 @@ func init() {
 func main() {
 	t := tweg.NewTweg()
 
-	// Lookup
-	t.Lookup()
-
 	switch *action {
 	case "encode":
 		fmt.Println("Result is :", t.Encode(*tweet, *secret))

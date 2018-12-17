@@ -41,16 +41,17 @@ type Tweg struct {
 
 // NewTweg returns a new Tweg
 func NewTweg() *Tweg {
-	secretAlphabetString := " abcdefghijklmnopqrstuvwxyz123456789'0.:/\\%-_?&;"
-	secretAlphabet := strings.Split(secretAlphabetString, "")
-	secretAlphabetBitLength := len(strconv.FormatInt(int64(len(secretAlphabet)), 2))
-
-	return &Tweg{
-		SecretAlphabetString:    secretAlphabetString,
-		SecretAlphabet:          secretAlphabet,
-		SecretAlphabetBitLength: secretAlphabetBitLength,
-		HomoglyphsLookup:        make(map[string]string),
+	t := &Tweg{
+		SecretAlphabetString: " abcdefghijklmnopqrstuvwxyz123456789'0.:/\\%-_?&;",
+		HomoglyphsLookup: make(map[string]string),
 	}
+	t.SecretAlphabet = strings.Split(t.SecretAlphabetString, "")
+	t.SecretAlphabetBitLength = len(strconv.FormatInt(int64(len(t.SecretAlphabet)), 2))
+
+	// Lookup
+	t.lookup()
+
+	return t
 }
 
 //------------------------------------------------------------------------------
@@ -184,8 +185,12 @@ func (t *Tweg) Decode(tweet string) string {
 	return result
 }
 
+//------------------------------------------------------------------------------
+// Helpers
+//------------------------------------------------------------------------------
+
 // Lookup the homoglyphs
-func (t *Tweg) Lookup() {
+func (t *Tweg) lookup() {
 	for c, h := range homoglyphs {
 		homoglyphOptionsBitLength := len(strconv.FormatInt(int64(len(h)+1), 2)) - 1
 		t.HomoglyphsLookup[c] = ""
@@ -205,13 +210,7 @@ func (t *Tweg) Lookup() {
 			i++
 		}
 	}
-
-	fmt.Println(t.HomoglyphsLookup["a"], t.HomoglyphsLookup["b"], t.HomoglyphsLookup["c"], t.HomoglyphsLookup["d"])
 }
-
-//------------------------------------------------------------------------------
-// Helpers
-//------------------------------------------------------------------------------
 
 func indexOf(element string, data []string) int {
 	for k, v := range data {
