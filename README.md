@@ -10,7 +10,7 @@ Given this :
 
 - Tweet : `A koala arrives in the great forest of Wumpalumpa`
 - Hidden message : `alpaga`
-- Alphabet : `&nbsp;abcdefghijklmnopqrstuvwxyz123456789'0.:/\\%-_?&`
+- Alphabet : ` abcdefghijklmnopqrstuvwxyz123456789'0.:/\\%-_?&`
 - Alphabet Bit Length : `6`
 
 > *Alphabet Bit Length* is `6` because the length of the alphabet is 48, which is `110000` in binary, its length is 6.
