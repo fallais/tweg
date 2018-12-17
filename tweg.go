@@ -12,8 +12,12 @@ import (
 var (
 	// ErrBinaryTooLong is raised when binary representation of character is too long
 	ErrBinaryTooLong = errors.New("The binary representation of character is too long")
+	// ErrParsingHexaToDecimal is raised when hexa parsing fails
+	ErrParsingHexaToDecimal = errors.New("Error while parsing hexa to decimal")
 	// ErrParsingBinaryToDecimal is raised when binary parsing fails
-	ErrParsingBinaryToDecimal = errors.New("Error while parsing the binary in decimal")
+	ErrParsingBinaryToDecimal = errors.New("Error while parsing binary to decimal")
+	// ErrInvalidCharacter is raised when an invalid character is used
+	ErrInvalidCharacter = errors.New("Invalid character")
 )
 
 //------------------------------------------------------------------------------
@@ -43,7 +47,7 @@ type Tweg struct {
 func NewTweg() *Tweg {
 	t := &Tweg{
 		SecretAlphabetString: " abcdefghijklmnopqrstuvwxyz123456789'0.:/\\%-_?&;",
-		HomoglyphsLookup: make(map[string]string),
+		HomoglyphsLookup:     make(map[string]string),
 	}
 	t.SecretAlphabet = strings.Split(t.SecretAlphabetString, "")
 	t.SecretAlphabetBitLength = len(strconv.FormatInt(int64(len(t.SecretAlphabet)), 2))
@@ -59,7 +63,7 @@ func NewTweg() *Tweg {
 //------------------------------------------------------------------------------
 
 // Encode the tweet
-func (t *Tweg) Encode(tweet, secret string) string {
+func (t *Tweg) Encode(tweet, secret string) (string, error) {
 	secret = strings.ToLower(secret) + " "
 	secretBinary := ""
 	tweetCovertextChars := 0
@@ -73,31 +77,31 @@ func (t *Tweg) Encode(tweet, secret string) string {
 		if secretAlphabetIndex >= 0 {
 			secretCharacterBinary := zeropadding(strconv.FormatInt(int64(secretAlphabetIndex), 2), t.SecretAlphabetBitLength)
 			if len(secretCharacterBinary) != t.SecretAlphabetBitLength {
-				logrus.Errorln(ErrBinaryTooLong)
+				return "", ErrBinaryTooLong
 			}
 			secretBinary += secretCharacterBinary
-			logrus.WithFields(logrus.Fields{
-				"secretCharacterBinary": secretCharacterBinary,
-			}).Debugln("SECRET BINARY :", secretBinary)
 		} else {
-			fmt.Println("ERROR: secret contains invalid character '" + character + "' Ignored")
+			return "", ErrInvalidCharacter
 		}
 	}
 
 	// Print some useful values
-	logrus.Debugln("SECRET ALPHABET BIT LENGTH :", t.SecretAlphabetBitLength)
-	logrus.Debugln("SECRET LENGTH :", len(secret))
-	logrus.Debugln("TWEET :", tweet)
-	logrus.Debugln("SECRET :", secret)
-	logrus.Debugln("SECRET BINARY :", secretBinary)
-	logrus.Debugln("SECRET BINARY LENGTH :", len(secretBinary))
-	logrus.Debugln("SECRET ALPHABET STRING :", t.SecretAlphabetString)
+	logrus.WithFields(logrus.Fields{
+		"SECRET ALPHABET BIT LENGTH": t.SecretAlphabetBitLength,
+		"SECRET LENGTH":              len(secret),
+		"TWEET":                      tweet,
+		"SECRET":                     secret,
+		"SECRET BINARY":              secretBinary,
+		"SECRET BINARY LENGTH":       len(secretBinary),
+		"SECRET ALPHABET STRING":     t.SecretAlphabetString,
+	}).Debugln("Debug values")
 
 	// Ensure
 	atoi64, err := strconv.ParseInt(secretBinary, 2, 64)
 	if err != nil {
-		logrus.Errorln("Error while converting :", err)
+		return "", fmt.Errorf("Error while converting : %s", err)
 	}
+	fmt.Println(atoi64)
 	if int(atoi64)%t.SecretAlphabetBitLength > 0 {
 		for i := 0; i < t.SecretAlphabetBitLength-(int(atoi64)%t.SecretAlphabetBitLength); i++ {
 			secretBinary += "0"
@@ -121,14 +125,14 @@ func (t *Tweg) Encode(tweet, secret string) string {
 				secretBinary = secretBinary[homoglyphOptionsBitLength:]
 				secretBinaryToEncodeInDecimal, err := strconv.ParseInt(secretBinaryToEncode, 2, 64)
 				if err != nil {
-					fmt.Println("Error while parsing the secretBinaryToEncodeInDecimal")
+					return "", ErrParsingBinaryToDecimal
 				}
 
 				if secretBinaryToEncodeInDecimal > 0 {
 					characterCodeInHexadecimal := homoglyphOptions[secretBinaryToEncodeInDecimal-1]
 					characterCodeInDecimal, err := strconv.ParseInt(characterCodeInHexadecimal, 16, 64)
 					if err != nil {
-						fmt.Println(ErrParsingBinaryToDecimal)
+						return "", ErrParsingHexaToDecimal
 					}
 					character = string(characterCodeInDecimal)
 				}
@@ -138,7 +142,7 @@ func (t *Tweg) Encode(tweet, secret string) string {
 		logrus.Debugln("PARTIAL RESULT :", result, character)
 	}
 
-	return result
+	return result, nil
 }
 
 // Decode the tweet

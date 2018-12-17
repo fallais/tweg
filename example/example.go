@@ -42,7 +42,12 @@ func main() {
 
 	switch *action {
 	case "encode":
-		fmt.Println("Result is :", t.Encode(*tweet, *secret))
+		result, err := t.Encode(*tweet, *secret)
+		if err != nil {
+			logrus.Errorln(err)
+			return
+		}
+		logrus.Infoln("Result is :", result)
 		break
 	case "decode":
 		fmt.Println("Result is :", t.Decode("A kｏａla arrivｅs іn the great forest of Wumpalumpa"))
