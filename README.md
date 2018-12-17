@@ -102,3 +102,21 @@ The binary representation is cut into blocs of the length of the alphabet bitlen
 - 000001 : `a`
 
 The secret message is `alpaga`.
+
+## How to use it
+
+The library can be used like this.
+
+> Disclaimer : It is not production ready !
+
+```golang
+import "github.com/fallais/tweg"
+
+t := tweg.NewTweg()
+result, err := t.Encode("xxxxxxxxxxx", "xxxxxxxxxxxx")
+if err != nil {
+  logrus.Errorln(err)
+  return
+}
+logrus.Infoln("Result is :", result)
+```

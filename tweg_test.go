@@ -44,4 +44,12 @@ func TestDecode(t *testing.T) {
 	if result != "kidnapped by pirates   " {
 		t.Fatal("String is incorrect")
 	}
+
+	result, err = tw.Decode("Ｃhｏose  a  jοｂ  yоu  lονｅ,  and  you  ｗіｌl  ｎeｖｅｒ  have  tο  ｗｏrk  a  day  in  yοur  lіfｅ．                        ")
+	if err != nil {
+		t.Fatal("Error while decoding :", err)
+	}
+	if result != "rendezvous at grand central terminal on friday.    " {
+		t.Fatal("String is incorrect")
+	}
 }
