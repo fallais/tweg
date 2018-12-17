@@ -1,12 +1,19 @@
 package tweg
 
 import (
+	"errors"
 	"fmt"
-	//"math/big"
 	"strconv"
 	"strings"
 
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	// ErrBinaryTooLong is raised when binary representation of character is too long
+	ErrBinaryTooLong = errors.New("The binary representation of character is too long")
+	// ErrParsingBinaryToDecimal is raised when binary parsing fails
+	ErrParsingBinaryToDecimal = errors.New("Error while parsing the binary in decimal")
 )
 
 //------------------------------------------------------------------------------
@@ -15,10 +22,17 @@ import (
 
 // Tweg is a Twitter stegano
 type Tweg struct {
-	secretAlphabetString    string
-	secretAlphabet          []string
-	secretAlphabetBitLength int
-	homoglyphsLookup        map[string]string
+	// SecretAlphabetString is the alphabet
+	SecretAlphabetString string
+
+	// SecretAlphabet is the exploded alphabet
+	SecretAlphabet []string
+
+	// SecretAlphabetBitLength is the length of the alphabet
+	SecretAlphabetBitLength int
+
+	// HomoglyphsLookup is the lookup table
+	HomoglyphsLookup map[string]string
 }
 
 //------------------------------------------------------------------------------
@@ -32,10 +46,10 @@ func NewTweg() *Tweg {
 	secretAlphabetBitLength := len(strconv.FormatInt(int64(len(secretAlphabet)), 2))
 
 	return &Tweg{
-		secretAlphabetString:    secretAlphabetString,
-		secretAlphabet:          secretAlphabet,
-		secretAlphabetBitLength: secretAlphabetBitLength,
-		homoglyphsLookup:        make(map[string]string),
+		SecretAlphabetString:    secretAlphabetString,
+		SecretAlphabet:          secretAlphabet,
+		SecretAlphabetBitLength: secretAlphabetBitLength,
+		HomoglyphsLookup:        make(map[string]string),
 	}
 }
 
@@ -53,12 +67,12 @@ func (t *Tweg) Encode(tweet, secret string) string {
 	// Process the secret
 	for i := 0; i < len(secret); i++ {
 		character := string(secret[i])
-		secretAlphabetIndex := indexOf(character, t.secretAlphabet)
+		secretAlphabetIndex := indexOf(character, t.SecretAlphabet)
 
 		if secretAlphabetIndex >= 0 {
-			secretCharacterBinary := zeropadding(strconv.FormatInt(int64(secretAlphabetIndex), 2), t.secretAlphabetBitLength)
-			if len(secretCharacterBinary) != t.secretAlphabetBitLength {
-				logrus.Errorln("The binary representation of character is too big")
+			secretCharacterBinary := zeropadding(strconv.FormatInt(int64(secretAlphabetIndex), 2), t.SecretAlphabetBitLength)
+			if len(secretCharacterBinary) != t.SecretAlphabetBitLength {
+				logrus.Errorln(ErrBinaryTooLong)
 			}
 			secretBinary += secretCharacterBinary
 			logrus.WithFields(logrus.Fields{
@@ -70,26 +84,26 @@ func (t *Tweg) Encode(tweet, secret string) string {
 	}
 
 	// Print some useful values
-	logrus.Infoln("SECRET ALPHABET BIT LENGTH :", t.secretAlphabetBitLength)
-	logrus.Infoln("SECRET LENGTH :", len(secret))
-	logrus.Infoln("TWEET :", tweet)
-	logrus.Infoln("SECRET :", secret)
-	logrus.Infoln("SECRET BINARY :", secretBinary)
-	logrus.Infoln("SECRET BINARY LENGTH :", len(secretBinary))
-	logrus.Infoln("SECRET ALPHABET STRING :", t.secretAlphabetString)
+	logrus.Debugln("SECRET ALPHABET BIT LENGTH :", t.SecretAlphabetBitLength)
+	logrus.Debugln("SECRET LENGTH :", len(secret))
+	logrus.Debugln("TWEET :", tweet)
+	logrus.Debugln("SECRET :", secret)
+	logrus.Debugln("SECRET BINARY :", secretBinary)
+	logrus.Debugln("SECRET BINARY LENGTH :", len(secretBinary))
+	logrus.Debugln("SECRET ALPHABET STRING :", t.SecretAlphabetString)
 
 	// Ensure
 	atoi64, err := strconv.ParseInt(secretBinary, 2, 64)
 	if err != nil {
 		logrus.Errorln("Error while converting :", err)
 	}
-	if int(atoi64)%t.secretAlphabetBitLength > 0 {
-		for i := 0; i < t.secretAlphabetBitLength-(int(atoi64)%t.secretAlphabetBitLength); i++ {
+	if int(atoi64)%t.SecretAlphabetBitLength > 0 {
+		for i := 0; i < t.SecretAlphabetBitLength-(int(atoi64)%t.SecretAlphabetBitLength); i++ {
 			secretBinary += "0"
 		}
 	}
 
-	logrus.Infoln("SECRET BINARY AFTER ENSURE :", secretBinary)
+	logrus.Debugln("SECRET BINARY AFTER ENSURE :", secretBinary)
 
 	// Process the tweet
 	for i := 0; i < len(tweet); i++ {
@@ -113,7 +127,7 @@ func (t *Tweg) Encode(tweet, secret string) string {
 					characterCodeInHexadecimal := homoglyphOptions[secretBinaryToEncodeInDecimal-1]
 					characterCodeInDecimal, err := strconv.ParseInt(characterCodeInHexadecimal, 16, 64)
 					if err != nil {
-						fmt.Println("Error while parsing the characterCodeInDecimal")
+						fmt.Println(ErrParsingBinaryToDecimal)
 					}
 					character = string(characterCodeInDecimal)
 				}
@@ -131,39 +145,40 @@ func (t *Tweg) Decode(tweet string) string {
 	secretBinary := ""
 	result := ""
 
-	// Process the tweet
+	// Lookup all the characters of the tweet and forge the secret binary
 	for _, character := range tweet {
-		homoglyphLookup, exists := t.homoglyphsLookup[string(character)]
+		homoglyphLookup, exists := t.HomoglyphsLookup[string(character)]
 		if exists {
 			secretBinary += homoglyphLookup
 		}
 	}
 
-	// Ensure
-	nb := t.secretAlphabetBitLength - (len(secretBinary) % t.secretAlphabetBitLength)
-	if len(secretBinary)%t.secretAlphabetBitLength > 0 {
+	// Ensure that the secret binary is divisible by alphabet bit length
+	nb := t.SecretAlphabetBitLength - (len(secretBinary) % t.SecretAlphabetBitLength)
+	if len(secretBinary)%t.SecretAlphabetBitLength > 0 {
 		for i := 0; i < nb; i++ {
 			secretBinary += "0"
 		}
 	}
 
+	// Decode the secret binary
 	for len(secretBinary) > 0 {
-		secretCharacteInBinary := secretBinary[0:t.secretAlphabetBitLength]
+		secretCharacteInBinary := secretBinary[0:t.SecretAlphabetBitLength]
 		if len(secretCharacteInBinary) > 0 {
-			secretCharacteInBinary = zeropadding(secretCharacteInBinary, t.secretAlphabetBitLength)
-			if len(secretCharacteInBinary) != t.secretAlphabetBitLength {
+			secretCharacteInBinary = zeropadding(secretCharacteInBinary, t.SecretAlphabetBitLength)
+			if len(secretCharacteInBinary) != t.SecretAlphabetBitLength {
 				logrus.Errorln("ERROR: Unable to extract 5 characters (zeropadded) from string. ")
 			}
 			secretCharacterInDecimal, err := strconv.ParseInt(secretCharacteInBinary, 2, 64)
 			if err != nil {
 				fmt.Println("Error while parsing the secretCharacteInBinary")
 			}
-			if secretCharacterInDecimal < int64(len(t.secretAlphabet)) {
-				result += t.secretAlphabet[secretCharacterInDecimal]
+			if secretCharacterInDecimal < int64(len(t.SecretAlphabet)) {
+				result += t.SecretAlphabet[secretCharacterInDecimal]
 			}
 		}
 
-		secretBinary = secretBinary[t.secretAlphabetBitLength:]
+		secretBinary = secretBinary[t.SecretAlphabetBitLength:]
 	}
 
 	return result
@@ -173,9 +188,9 @@ func (t *Tweg) Decode(tweet string) string {
 func (t *Tweg) Lookup() {
 	for c, h := range homoglyphs {
 		homoglyphOptionsBitLength := len(strconv.FormatInt(int64(len(h)+1), 2)) - 1
-		t.homoglyphsLookup[c] = ""
+		t.HomoglyphsLookup[c] = ""
 		for i := 0; i < homoglyphOptionsBitLength; i++ {
-			t.homoglyphsLookup[c] += "0"
+			t.HomoglyphsLookup[c] += "0"
 		}
 
 		// Options
@@ -186,10 +201,12 @@ func (t *Tweg) Lookup() {
 				fmt.Println("Error while parsing the characterCodeInDecimal")
 			}
 			homoglyphOptionCharacter := string(characterCodeInDecimal)
-			t.homoglyphsLookup[homoglyphOptionCharacter] = zeropadding(strconv.FormatInt(int64(i+1), 2), homoglyphOptionsBitLength)
+			t.HomoglyphsLookup[homoglyphOptionCharacter] = zeropadding(strconv.FormatInt(int64(i+1), 2), homoglyphOptionsBitLength)
 			i++
 		}
 	}
+
+	fmt.Println(t.HomoglyphsLookup["a"], t.HomoglyphsLookup["b"], t.HomoglyphsLookup["c"], t.HomoglyphsLookup["d"])
 }
 
 //------------------------------------------------------------------------------

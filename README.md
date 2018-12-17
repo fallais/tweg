@@ -53,14 +53,20 @@ Repeat the step.
 
 Encoded message : `A kｏａla arrivｅs іn the great forest of Wumpalumpa`
 
+#### Step 0 : homoglyphs lookup table
+
 In order to decode the message, a lookup dictionnary is built, like this :
 
 ```json
 {
-  "A": "",
-  "B": "",
-  "a": "",
-  "b": ""
+  "A": "00",
+  "B": "00",
+  "C": "00",
+  "D": "0",
+  "a": "0",
+  "b": "0",
+  "c": "00",
+  "d": "0"
 }
 ```
 
