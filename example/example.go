@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"time"
 
 	"tweg"
@@ -50,10 +49,14 @@ func main() {
 		logrus.Infoln("Result is :", result)
 		break
 	case "decode":
-		fmt.Println("Result is :", t.Decode("A kｏａla arrivｅs іn the great forest of Wumpalumpa"))
+		result, err := t.Decode("A kｏａla arrivｅs іn the great forest of Wumpalumpa")
+		if err != nil {
+			logrus.Errorln(err)
+			return
+		}
+		logrus.Infoln("Result is :", result)
 		break
 	default:
 		logrus.Fatalln("Action is incorrect")
 	}
-
 }
