@@ -100,3 +100,4 @@ The binary representation is cut into blocs of the length of the alphabet bitlen
 - 000111 : `g`
 - 000001 : `a`
 
+The secret message is `alpaga`.
