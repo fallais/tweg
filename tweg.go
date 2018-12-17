@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 var (
 	// ErrBinaryTooLong is raised when binary representation of character is too long
 	ErrBinaryTooLong = errors.New("The binary representation of character is too long")
+
 	// ErrParsingHexaToDecimal is raised when hexa parsing fails
 	ErrParsingHexaToDecimal = errors.New("Error while parsing hexa to decimal")
+
 	// ErrParsingBinaryToDecimal is raised when binary parsing fails
 	ErrParsingBinaryToDecimal = errors.New("Error while parsing binary to decimal")
+
 	// ErrInvalidCharacter is raised when an invalid character is used
 	ErrInvalidCharacter = errors.New("Invalid character")
 )
@@ -85,30 +86,16 @@ func (t *Tweg) Encode(tweet, secret string) (string, error) {
 		}
 	}
 
-	// Print some useful values
-	logrus.WithFields(logrus.Fields{
-		"SECRET ALPHABET BIT LENGTH": t.SecretAlphabetBitLength,
-		"SECRET LENGTH":              len(secret),
-		"TWEET":                      tweet,
-		"SECRET":                     secret,
-		"SECRET BINARY":              secretBinary,
-		"SECRET BINARY LENGTH":       len(secretBinary),
-		"SECRET ALPHABET STRING":     t.SecretAlphabetString,
-	}).Debugln("Debug values")
-
-	// Ensure
+	// Ensure that the secret binary is divisible by alphabet bit length
 	atoi64, err := strconv.ParseInt(secretBinary, 2, 64)
 	if err != nil {
 		return "", fmt.Errorf("Error while converting : %s", err)
 	}
-	fmt.Println(atoi64)
 	if int(atoi64)%t.SecretAlphabetBitLength > 0 {
 		for i := 0; i < t.SecretAlphabetBitLength-(int(atoi64)%t.SecretAlphabetBitLength); i++ {
 			secretBinary += "0"
 		}
 	}
-
-	logrus.Debugln("SECRET BINARY AFTER ENSURE :", secretBinary)
 
 	// Process the tweet
 	for i := 0; i < len(tweet); i++ {
@@ -138,15 +125,15 @@ func (t *Tweg) Encode(tweet, secret string) (string, error) {
 				}
 			}
 		}
+
 		result += character
-		logrus.Debugln("PARTIAL RESULT :", result, character)
 	}
 
 	return result, nil
 }
 
 // Decode the tweet
-func (t *Tweg) Decode(tweet string) string {
+func (t *Tweg) Decode(tweet string) (string, error) {
 	secretBinary := ""
 	result := ""
 
@@ -172,11 +159,11 @@ func (t *Tweg) Decode(tweet string) string {
 		if len(secretCharacteInBinary) > 0 {
 			secretCharacteInBinary = zeropadding(secretCharacteInBinary, t.SecretAlphabetBitLength)
 			if len(secretCharacteInBinary) != t.SecretAlphabetBitLength {
-				logrus.Errorln("ERROR: Unable to extract 5 characters (zeropadded) from string. ")
+				return "", fmt.Errorf("ERROR: Unable to extract 5 characters (zeropadded) from string. ")
 			}
 			secretCharacterInDecimal, err := strconv.ParseInt(secretCharacteInBinary, 2, 64)
 			if err != nil {
-				fmt.Println("Error while parsing the secretCharacteInBinary")
+				return "", fmt.Errorf("Error while parsing the secretCharacteInBinary")
 			}
 			if secretCharacterInDecimal < int64(len(t.SecretAlphabet)) {
 				result += t.SecretAlphabet[secretCharacterInDecimal]
@@ -186,7 +173,7 @@ func (t *Tweg) Decode(tweet string) string {
 		secretBinary = secretBinary[t.SecretAlphabetBitLength:]
 	}
 
-	return result
+	return result, nil
 }
 
 //------------------------------------------------------------------------------
@@ -216,6 +203,7 @@ func (t *Tweg) lookup() {
 	}
 }
 
+// indexOf returns the index of an element in a []string
 func indexOf(element string, data []string) int {
 	for k, v := range data {
 		if element == v {
@@ -226,6 +214,7 @@ func indexOf(element string, data []string) int {
 	return -1
 }
 
+// zeropadding pads a string with zeros
 func zeropadding(value string, length int) string {
 	myString := ""
 	valueLength := len(value)

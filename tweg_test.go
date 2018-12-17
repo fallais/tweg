@@ -29,12 +29,18 @@ func TestEncode(t *testing.T) {
 func TestDecode(t *testing.T) {
 	tw := NewTweg()
 
-	result := tw.Decode("A kｏａla arrivｅs іn the great forest of Wumpalumpa")
+	result, err := tw.Decode("A kｏａla arrivｅs іn the great forest of Wumpalumpa")
+	if err != nil {
+		t.Fatal("Error while decoding :", err)
+	}
 	if result != "alpaga        " {
 		t.Fatal("String is incorrect")
 	}
 
-	result = tw.Decode("i haｄ a grｅａｔ daｙ at the ｂeaｃh! #sunshｉne                ")
+	result, err = tw.Decode("i haｄ a grｅａｔ daｙ at the ｂeaｃh! #sunshｉne                ")
+	if err != nil {
+		t.Fatal("Error while decoding :", err)
+	}
 	if result != "kidnapped by pirates   " {
 		t.Fatal("String is incorrect")
 	}
