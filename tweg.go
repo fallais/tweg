@@ -3,6 +3,7 @@ package tweg
 import (
 	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 )
@@ -86,16 +87,12 @@ func (t *Tweg) Encode(tweet, secret string) (string, error) {
 		}
 	}
 
+	fmt.Println(secretBinary, len(secretBinary)) // azeaze
+
 	// Ensure that the secret binary is divisible by alphabet bit length
-	atoi64, err := strconv.ParseInt(secretBinary, 2, 64)
-	if err != nil {
-		return "", fmt.Errorf("Error while converting : %s", err)
-	}
-	if int(atoi64)%t.SecretAlphabetBitLength > 0 {
-		for i := 0; i < t.SecretAlphabetBitLength-(int(atoi64)%t.SecretAlphabetBitLength); i++ {
-			secretBinary += "0"
-		}
-	}
+	secretBinary = ensureDivisible2(secretBinary, t.SecretAlphabetBitLength)
+
+	fmt.Println(secretBinary, len(secretBinary))
 
 	// Process the tweet
 	for i := 0; i < len(tweet); i++ {
@@ -146,12 +143,7 @@ func (t *Tweg) Decode(tweet string) (string, error) {
 	}
 
 	// Ensure that the secret binary is divisible by alphabet bit length
-	nb := t.SecretAlphabetBitLength - (len(secretBinary) % t.SecretAlphabetBitLength)
-	if len(secretBinary)%t.SecretAlphabetBitLength > 0 {
-		for i := 0; i < nb; i++ {
-			secretBinary += "0"
-		}
-	}
+	secretBinary = ensureDivisible(secretBinary, t.SecretAlphabetBitLength)
 
 	// Decode the secret binary
 	for len(secretBinary) > 0 {
@@ -201,6 +193,33 @@ func (t *Tweg) lookup() {
 			i++
 		}
 	}
+}
+
+// ensureDivisible by the secretAlphabetBitLength
+func ensureDivisible(value string, secretAlphabetBitLength int) string {
+	result := value
+	nb := secretAlphabetBitLength - (len(value) % secretAlphabetBitLength)
+	if len(value)%secretAlphabetBitLength > 0 {
+		for i := 0; i < nb; i++ {
+			result += "0"
+		}
+	}
+
+	return result
+}
+
+// ensureDivisible2 by the secretAlphabetBitLength
+func ensureDivisible2(value string, secretAlphabetBitLength int) string {
+	result := value
+	bToBig, _ := new(big.Int).SetString(value, 2)
+	nb := int64(secretAlphabetBitLength) - (bToBig.Int64() % int64(secretAlphabetBitLength))
+	if bToBig.Int64()%int64(secretAlphabetBitLength) > 0 {
+		for i := 0; int64(i) < nb; i++ {
+			result += "0"
+		}
+	}
+
+	return result
 }
 
 // indexOf returns the index of an element in a []string
