@@ -63,23 +63,23 @@ func NewTweg() *Tweg {
 // Structure
 //------------------------------------------------------------------------------
 
-// Encode the tweet
+// Encode the tweet with the given secret
 func (t *Tweg) Encode(tweet, secret string) (string, error) {
 	secret = strings.ToLower(secret) + " "
 	secretBinary := ""
-	tweetCovertextChars := 0
 	result := ""
 
-	// Process the secret
-	for i := 0; i < len(secret); i++ {
-		character := string(secret[i])
-		secretAlphabetIndex := indexOf(character, t.SecretAlphabet)
+	// Process all the characters of the secret
+	for _, character := range secret {
+		// Find the index of the character in the secret alphabet
+		secretAlphabetIndex := indexOf(string(character), t.SecretAlphabet)
 
 		if secretAlphabetIndex >= 0 {
 			secretCharacterBinary := zeropadding(strconv.FormatInt(int64(secretAlphabetIndex), 2), t.SecretAlphabetBitLength)
 			if len(secretCharacterBinary) != t.SecretAlphabetBitLength {
 				return "", ErrBinaryTooLong
 			}
+
 			secretBinary += secretCharacterBinary
 		} else {
 			return "", ErrInvalidCharacter
@@ -90,14 +90,10 @@ func (t *Tweg) Encode(tweet, secret string) (string, error) {
 	secretBinary = ensureDivisible(secretBinary, t.SecretAlphabetBitLength)
 
 	// Process the tweet
-	for i := 0; i < len(tweet); i++ {
-		character := string(tweet[i])
-
-		homoglyph, exists := Homoglyphs[character]
+	for _, character := range tweet {
+		homoglyphOptions, exists := Homoglyphs[string(character)]
 		if exists {
-			homoglyphOptions := homoglyph
 			homoglyphOptionsBitLength := len(strconv.FormatInt(int64(len(homoglyphOptions)+1), 2)) - 1
-			tweetCovertextChars += homoglyphOptionsBitLength
 
 			if len(secretBinary) > 0 {
 				// Add the missing zeros if needed
@@ -107,6 +103,7 @@ func (t *Tweg) Encode(tweet, secret string) (string, error) {
 						secretBinary += "0"
 					}
 				}
+
 				secretBinaryToEncode := secretBinary[0:homoglyphOptionsBitLength]
 				secretBinary = secretBinary[homoglyphOptionsBitLength:]
 				secretBinaryToEncodeInDecimal, err := strconv.ParseInt(secretBinaryToEncode, 2, 64)
@@ -120,12 +117,13 @@ func (t *Tweg) Encode(tweet, secret string) (string, error) {
 					if err != nil {
 						return "", ErrParsingHexaToDecimal
 					}
-					character = string(characterCodeInDecimal)
+					result += string(characterCodeInDecimal)
+					continue
 				}
 			}
 		}
 
-		result += character
+		result += string(character)
 	}
 
 	return result, nil

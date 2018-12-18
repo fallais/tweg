@@ -34,7 +34,7 @@ func TestDecode(t *testing.T) {
 		t.Fatal("Error while decoding :", err)
 	}
 	if result != "alpaga        " {
-		t.Fatalf("String is incorrect : '%s'", result)
+		t.Fatalf("String is incorrect : '%s' but it should be '%s'", result, "alpaga        ")
 	}
 
 	result, err = tw.Decode("i haｄ a grｅａｔ daｙ at the ｂeaｃh! #sunshｉne                ")
@@ -42,7 +42,7 @@ func TestDecode(t *testing.T) {
 		t.Fatal("Error while decoding :", err)
 	}
 	if result != "kidnapped by pirates   " {
-		t.Fatalf("String is incorrect : '%s'", result)
+		t.Fatalf("String is incorrect : '%s' but it should be '%s'", result, "kidnapped by pirates   ")
 	}
 
 	result, err = tw.Decode("Ｃhｏose  a  jοｂ  yоu  lονｅ,  and  you  ｗіｌl  ｎeｖｅｒ  have  tο  ｗｏrk  a  day  in  yοur  lіfｅ．                        ")
@@ -50,6 +50,6 @@ func TestDecode(t *testing.T) {
 		t.Fatal("Error while decoding :", err)
 	}
 	if result != "rendezvous at grand central terminal on friday.    " {
-		t.Fatalf("String is incorrect : '%s'", result)
+		t.Fatalf("String is incorrect : '%s' but it should be '%s'", result, "rendezvous at grand central terminal on friday.    ")
 	}
 }
