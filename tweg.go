@@ -2,7 +2,6 @@ package tweg
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -149,13 +148,9 @@ func (t *Tweg) Decode(tweet string) (string, error) {
 	for len(secretBinary) > 0 {
 		secretCharacteInBinary := secretBinary[0:t.SecretAlphabetBitLength]
 		if len(secretCharacteInBinary) > 0 {
-			secretCharacteInBinary = zeropadding(secretCharacteInBinary, t.SecretAlphabetBitLength)
-			if len(secretCharacteInBinary) != t.SecretAlphabetBitLength {
-				return "", fmt.Errorf("ERROR: Unable to extract 5 characters (zeropadded) from string. ")
-			}
 			secretCharacterInDecimal, err := strconv.ParseInt(secretCharacteInBinary, 2, 64)
 			if err != nil {
-				return "", fmt.Errorf("Error while parsing the secretCharacteInBinary")
+				return "", ErrParsingBinaryToDecimal
 			}
 			if secretCharacterInDecimal < int64(len(t.SecretAlphabet)) {
 				result += t.SecretAlphabet[secretCharacterInDecimal]
