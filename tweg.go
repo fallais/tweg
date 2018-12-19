@@ -7,16 +7,16 @@ import (
 )
 
 var (
-	// ErrBinaryTooLong is raised when binary representation of character is too long
+	// ErrBinaryTooLong is raised when binary representation of character is too long.
 	ErrBinaryTooLong = errors.New("The binary representation of character is too long")
 
-	// ErrParsingHexaToDecimal is raised when hexa parsing fails
+	// ErrParsingHexaToDecimal is raised when hexa parsing fails.
 	ErrParsingHexaToDecimal = errors.New("Error while parsing hexa to decimal")
 
-	// ErrParsingBinaryToDecimal is raised when binary parsing fails
+	// ErrParsingBinaryToDecimal is raised when binary parsing fails.
 	ErrParsingBinaryToDecimal = errors.New("Error while parsing binary to decimal")
 
-	// ErrInvalidCharacter is raised when an invalid character is used
+	// ErrInvalidCharacter is raised when an invalid character is used.
 	ErrInvalidCharacter = errors.New("Invalid character")
 )
 
@@ -24,18 +24,18 @@ var (
 // Structure
 //------------------------------------------------------------------------------
 
-// Tweg is a Twitter stegano
+// Tweg stands for Twitter Steganography.
 type Tweg struct {
-	// SecretAlphabetString is the alphabet
+	// SecretAlphabetString is a string containing all the allowed characters.
 	SecretAlphabetString string
 
-	// SecretAlphabet is the exploded alphabet
+	// SecretAlphabet is the exploded alphabet.
 	SecretAlphabet []string
 
-	// SecretAlphabetBitLength is the length of the alphabet
+	// SecretAlphabetBitLength is the length of the alphabet.
 	SecretAlphabetBitLength int
 
-	// HomoglyphsLookup is the lookup table
+	// HomoglyphsLookup is the lookup table.
 	HomoglyphsLookup map[string]string
 }
 
@@ -43,7 +43,7 @@ type Tweg struct {
 // Factory
 //------------------------------------------------------------------------------
 
-// NewTweg returns a new Tweg
+// NewTweg returns a new Tweg.
 func NewTweg() *Tweg {
 	t := &Tweg{
 		SecretAlphabetString: " abcdefghijklmnopqrstuvwxyz123456789'0.:/\\%-_?&;",
@@ -62,7 +62,7 @@ func NewTweg() *Tweg {
 // Structure
 //------------------------------------------------------------------------------
 
-// Encode the tweet with the given secret
+// Encode the tweet with the given secret inside.
 func (t *Tweg) Encode(tweet, secret string) (string, error) {
 	secret = strings.ToLower(secret) + " "
 	secretBinary := ""
@@ -128,7 +128,7 @@ func (t *Tweg) Encode(tweet, secret string) (string, error) {
 	return result, nil
 }
 
-// Decode the tweet
+// Decode the tweet.
 func (t *Tweg) Decode(tweet string) (string, error) {
 	secretBinary := ""
 	result := ""
